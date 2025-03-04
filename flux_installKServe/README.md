@@ -1,1 +1,0 @@
-# This folder will be put in flux, to install KServe.

@@ -1,0 +1,21 @@
+# For metrics api, can be accessed without jwt token. 
+# It is convinience for prometheus collecting metrics.
+{{- if and .Values.metrics .Values.metrics.enabled }}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}-predictor-allow-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        methods:
+        - GET
+        paths:
+        - {{ .Values.metrics.path | default "/metrics" }}
+  selector:
+    matchLabels:
+      app: isvc.{{ .Release.Name }}-predictor
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if and .Values.exposeModel .Values.exposeModel.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}-predictor
+  namespace: {{ .Release.Namespace }}
+spec:
+  gateways:
+  - istio-system/sample-gatetway
+  hosts:
+  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.xxxx.sample.com
+  http:
+  - match:
+    - uri:
+        regex: ^/.+$
+    name: {{ .Release.Name }}-predictor
+    route:
+    - destination:
+        host: {{ .Release.Name }}-predictor
+        port:
+          number: 80
+{{- end }}
