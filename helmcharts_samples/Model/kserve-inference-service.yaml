@@ -1,0 +1,96 @@
+{{- if and .Values.inferenceservice }}
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    # Need not KServe/Knative create HPA
+    serving.kserve.io/autoscalerClass: "external"
+    
+    # Expose KServe metrics to prometheus
+    {{- if and .Values.metrics .Values.metrics.enabled }}
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: {{ .Values.metrics.port | default 8082 | quote }}
+    prometheus.io/path: {{ .Values.metrics.path | default "/metrics" }}
+    {{- else }}
+    prometheus.io/scrape: 'false'
+    {{- end }}
+    
+    # ... ...
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if .Values.inferenceservice.predictor }}
+  predictor:
+    imagePullSecrets:
+    - name: "xxxx"
+
+    {{- if .Values.inferenceservice.predictor.model }}
+    {{- with .Values.inferenceservice.predictor.model }}
+    model:
+      image: {{ .image }} # pytorch/torchserve-kfs:0.6.0-gpu
+      {{- if .runtime }}
+      runtime: {{ .runtime }} # kserve-torchserve
+      {{- end }}
+      modelFormat:
+        name: {{ .modelFormat.name }} # pytorch
+      {{- with  $.Values.inferenceservice.predictor.model.resources }}
+      resources:
+        requests:
+          cpu: {{ .requestCPU | default "200m" }}
+          memory: {{ .requestMemory | default "1Gi" }}
+          {{- if .requestGPU }}
+          nvidia.com/gpu: {{ .requestGPU }}
+          {{- end }}
+        limits:
+          {{- if .limitCPU }}
+          cpu: {{ .limitCPU }}
+          {{- end }}
+          memory: {{ .limitMemory | default .requestMemory | default "1Gi" }}
+          {{- if .limitGPU }}
+          nvidia.com/gpu: {{ .limitGPU }}
+          {{- end }}
+      {{- end }}
+      storageUri: {{ .storageUri }}
+    {{- end }}
+    {{- end }}
+
+    {{- if .Values.inferenceservice.predictor.containers }}
+    containers:
+ 
+      - name: kserve-container
+        image: harbor.ext.hp.com/omenservices/web-svc-omen-ai_inference:v0.0.39
+    
+    {{- range .Values.inferenceservice.predictor.containers }}
+      - name: {{ .name }}
+        image: harbor.ext.example.com/xxxxx/xxxxx:v0.0.39
+        {{- with .var_env }}
+        env:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .var_envFrom }}
+        envFrom:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .var_readinessProbe }}
+        readinessProbe:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .var_livenessProbe }}
+        livenessProbe:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .var_resource }}
+        # resources:
+        #   ...
+
+    {{- end }}
+    {{- end }}
+    
+
+    # ... ...
+
+    serviceAccountName: {{ .Release.Name }}
+    # ... ...
+
+  {{- end }}
+{{- end }}

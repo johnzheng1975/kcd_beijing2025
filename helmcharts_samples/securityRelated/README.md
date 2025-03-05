@@ -1,2 +1,0 @@
-# Security when expose Model
-
