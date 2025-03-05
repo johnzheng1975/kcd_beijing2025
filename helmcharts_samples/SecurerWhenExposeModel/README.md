@@ -8,7 +8,7 @@
 
 ## Expose Model With Istio Virtual Service
 - For model named "sample", service "sample-predictor" will be created automatically. 
-- Expose this service by Istio Virtual Service. [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/securityRelated/virtualservice.yaml)
+- Expose this service by Istio Virtual Service. [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/SecurerWhenExposeModel/virtualservice.yaml)
 
 
 ## How to protect model by JWT token?
@@ -53,5 +53,5 @@ spec:
 - [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/istio_mTLS.yaml)
 
 ### Define CUSTOM AuthorizationPolicy for further authz
-- As [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/SecurerWhenExposeModel/authorizationpolicy-custom.yaml), we do custom authorzation.
+- As [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/SecurerWhenExposeModel/authorizationpolicy-custom.yaml), add custom authorizationpolicy, for further authz.
 - For details, please view my previous introduction. [Details] (https://github.com/johnzheng1975/istiocon2023/tree/main/samples/AuthenticationAndAuthorization/ExtAuthz-AuthzCustom)
