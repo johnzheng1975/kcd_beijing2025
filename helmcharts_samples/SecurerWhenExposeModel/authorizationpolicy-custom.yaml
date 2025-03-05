@@ -1,7 +1,6 @@
 # Besides jwt verify (authentication), all API from external need authorization check also.
 # For CUSTOM AuthorizationPolicy, you can view my previous detail introdction. https://github.com/johnzheng1975/istiocon2023/tree/main/samples/AuthenticationAndAuthorization/ExtAuthz-AuthzCustom
-{{- if and .Values.exposeModel .Values.exposeModel.enabled }}
-{{- if and .Values.exposeModel.jwtVerify .Values.exposeModel.jwtVerify.enabled }}
+{{- if and .Values.exposeModel .Values.exposeModel.enabled .Values.exposeModel.jwtVerify }}
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -20,5 +19,4 @@ spec:
         hosts:
         - '*.com'
         - '*.io'
-{{- end }}
 {{- end }}

@@ -1,5 +1,4 @@
-{{- if and .Values.exposeModel .Values.exposeModel.enabled }}
-{{- if and .Values.exposeModel.jwtVerify .Values.exposeModel.jwtVerify.enabled }}
+{{- if and .Values.exposeModel .Values.exposeModel.enabled .Values.exposeModel.jwtVerify }}
 apiVersion: security.istio.io/v1beta1
 kind: RequestAuthentication
 metadata:
@@ -10,7 +9,7 @@ spec:
     matchLabels:
       app: isvc.{{ .Release.Name }}-predictor
   jwtRules:
-{{- include "serviceAuth.jwt_jwksuri_issuer" . | nindent 2 }}
+{{- include "serviceAuth.jwt_jwks_issuer" . | nindent 2 }}
 {{- end }}
-{{- end }}
+
 

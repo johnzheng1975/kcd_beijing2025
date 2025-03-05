@@ -13,7 +13,7 @@
       {{- end }}
 {{- end }}
 
-{{- define "serviceAuth.jwt_jwksuri_issuer" -}}
+{{- define "serviceAuth.jwt_jwks_issuer" -}}
     ... ...
 
     {{- else if and (eq .Values.regionCode "uw2") (eq .Values.env "stg") }}
