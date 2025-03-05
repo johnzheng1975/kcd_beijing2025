@@ -1,12 +1,15 @@
 # Securer When Expose Model
 
+
 ## mTLS enabled
 - With peerauthentication, enable mTLS.
 - [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/istio_mTLS.yaml)
 
+
 ## Expose Model With Istio Virtual Service
 - For model named "sample", service "sample-predictor" will be created automatically. 
 - Expose this service by Istio Virtual Service. [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/securityRelated/virtualservice.yaml)
+
 
 ## How to protect model by JWT token?
 
@@ -49,5 +52,6 @@ spec:
 ### Define RequestAuthentication for TOKEN Verify
 - [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/istio_mTLS.yaml)
 
-### Define CUSTOM AuthorizationPolicy
-- As 
+### Define CUSTOM AuthorizationPolicy for further authz
+- As [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/SecurerWhenExposeModel/authorizationpolicy-custom.yaml), we do custom authorzation.
+- For details, please view my previous introduction. [Details] (https://github.com/johnzheng1975/istiocon2023/tree/main/samples/AuthenticationAndAuthorization/ExtAuthz-AuthzCustom)
