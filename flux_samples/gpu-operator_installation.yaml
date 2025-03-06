@@ -1,0 +1,40 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: gpu-operator
+  namespace: infra
+spec:
+  interval: 10m
+  url: https://helm.ngc.nvidia.com/nvidia
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gpu-operator
+  namespace: infra
+spec:
+  interval: 5m # The interval at which to reconcile the Helm release
+  timeout: 10m
+  releaseName: gpu-operator
+  chart:
+    spec:
+      chart: gpu-operator
+      version: v24.9.2 # https://github.com/NVIDIA/gpu-operator/releases
+      sourceRef:
+        kind: HelmRepository
+        name: gpu-operator
+      interval: 10m
+  install:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+  values:
+    nodeSelector:      
+      node-pool: gpu
+    toolkit:
+      version: "v1.13.1-centos7"
