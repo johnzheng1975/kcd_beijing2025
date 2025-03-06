@@ -117,7 +117,7 @@ The Istio telemetry service collects metrics from the mesh and stores them in Pr
 This is how you can query Prometheus for the req/sec rate received by podinfo in the last two minute:
 
 ```sql
-   sum(rate(istio_requests_total{namespace="test",pod=~".*"}[2m])) by (namespace, pod)
+   sum(rate(istio_requests_total{namespace="test",pod=~"podinfo-.*"}[2m])) by (namespace, pod)
 ```
 
 
