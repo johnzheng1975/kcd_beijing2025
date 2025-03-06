@@ -96,11 +96,11 @@ kubectl -n test exec -it ${loadtester} -- sh
 ~ $ hey -z 10s -c 10 -q 2 http://podinfo.test:9898
 
 Summary:
-  Total:	5.0138 secs
+  Total:	10.0138 secs
   Requests/sec:	19.9451
 
 Status code distribution:
-  [200]	xxxx responses
+  [200]	200 responses
 
   $ exit
 ```
