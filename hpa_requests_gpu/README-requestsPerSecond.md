@@ -1,5 +1,5 @@
 ## Custom metrics with prometheus adapter
-- Refer to "https://github.com/stefanprodan/istio-hpa", which use kube-metrics-adapter. However, use rometheus adapter in this example.
+- Refer to "https://github.com/stefanprodan/istio-hpa", which use kube-metrics-adapter. However, we use rometheus adapter in this example since it is more popular.
 - use Istio metrics "istio_requests_total", create custom metrics, for HPA.
 - The hpa is based on requests per second.
 
