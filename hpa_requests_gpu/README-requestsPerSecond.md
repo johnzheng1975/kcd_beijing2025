@@ -179,10 +179,8 @@ Press ctrl+c then exit to get out of load test terminal if you wanna stop premat
 - In k8s command:
 ```
 # kubectl  get hpa -n test
-NAME      REFERENCE            TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
-podinfo   Deployment/podinfo   484m/500m   1         20        4          14h
+NAME      REFERENCE            TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+podinfo   Deployment/podinfo   4958m/5   1         20        4          6m47s
 ```
  
-
-You can find some deploy to show metrics in hpa, and scale down. This is fine and as design.
  
