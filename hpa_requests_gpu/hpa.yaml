@@ -11,7 +11,7 @@ spec:
       metric:
         name: requests_per_second 
       target:
-        averageValue: 3
+        averageValue: 5
         type: Value
     type: Pods
   minReplicas: 1
