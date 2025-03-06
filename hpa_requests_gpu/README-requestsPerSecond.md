@@ -1,6 +1,6 @@
 ## Custom metrics with prometheus adapter
-- Refer to "https://github.com/stefanprodan/istio-hpa", which use kube-metrics-adapter. However, use rometheus adapter in this example.
-- use Istio metrics "istio_requests_total", create custom metrics, for HPA.
+- Refer to "https://github.com/stefanprodan/istio-hpa", which use kube-metrics-adapter. However, we use rometheus adapter in this example since it is more popular.
+- Use Istio metrics "istio_requests_total", create custom metrics, for HPA.
 - The hpa is based on requests per second.
 
 ### Architecture diagram
@@ -96,16 +96,16 @@ kubectl -n test exec -it ${loadtester} -- sh
 ~ $ hey -z 10s -c 10 -q 2 http://podinfo.test:9898
 
 Summary:
-  Total:	5.0138 secs
+  Total:	10.0138 secs
   Requests/sec:	19.9451
 
 Status code distribution:
-  [200]	xxxx responses
+  [200]	200 responses
 
   $ exit
 ```
 
-The podinfo [ClusterIP service](https://github.com/stefanprodan/istio-hpa/blob/master/podinfo/service.yaml)
+The podinfo [ClusterIP service](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/podinfo/service.yaml)
 exposes port 9898 under the `http` name. When using the http prefix, the Envoy sidecar will
 switch to L7 routing and the telemetry service will collect HTTP metrics.
 
@@ -117,7 +117,7 @@ The Istio telemetry service collects metrics from the mesh and stores them in Pr
 This is how you can query Prometheus for the req/sec rate received by podinfo in the last two minute:
 
 ```sql
-   sum(rate(istio_requests_total{namespace="test",pod=~".*"}[2m])) by (namespace, pod)
+   sum(rate(istio_requests_total{namespace="test",pod=~"podinfo-.*"}[2m])) by (namespace, pod)
 ```
 
 
