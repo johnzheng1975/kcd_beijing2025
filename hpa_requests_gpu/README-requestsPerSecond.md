@@ -105,7 +105,7 @@ Status code distribution:
   $ exit
 ```
 
-The podinfo [ClusterIP service](https://github.com/stefanprodan/istio-hpa/blob/master/podinfo/service.yaml)
+The podinfo [ClusterIP service](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/podinfo/service.yaml)
 exposes port 9898 under the `http` name. When using the http prefix, the Envoy sidecar will
 switch to L7 routing and the telemetry service will collect HTTP metrics.
 
