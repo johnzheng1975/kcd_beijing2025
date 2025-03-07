@@ -1,4 +1,4 @@
-# kubectl  get cm prometheus-adapter -oyaml                                  
+# kubectl  get cm prometheus-adapter -oyaml
 apiVersion: v1
 data:
   config.yaml: |
@@ -16,7 +16,7 @@ data:
       seriesQuery: istio_requests_total{pod!="", namespace!=""}
     - metricsQuery: avg(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)
       name:
-        as: gpu_utilization
+        as: DCGM_FI_DEV_GPU_UTIL
         matches: gpu_utilization
       resources:
         overrides:
