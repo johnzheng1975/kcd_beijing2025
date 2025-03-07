@@ -1,0 +1,32 @@
+# kubectl  get cm prometheus-adapter -oyaml                                  
+apiVersion: v1
+data:
+  config.yaml: |
+    rules:
+    - metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
+      name:
+        matches: "istio_requests_total"
+        as: "requests_per_second"
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      seriesQuery: istio_requests_total{pod!="", namespace!=""}
+    - metricsQuery: avg(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)
+      name:
+        as: gpu_utilization
+        matches: gpu_utilization
+      resources:
+        overrides:
+          exported_namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      seriesQuery: '{__name__=~"^DCGM_FI_DEV_GPU_UTIL$", app="nvidia-dcgm-exporter", container="service",
+        service="nvidia-dcgm-exporter"}'
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter
+  namespace: infra
