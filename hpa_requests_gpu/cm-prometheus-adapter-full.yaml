@@ -16,8 +16,8 @@ data:
       seriesQuery: istio_requests_total{pod!="", namespace!=""}
     - metricsQuery: avg(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)
       name:
-        as: DCGM_FI_DEV_GPU_UTIL
-        matches: gpu_utilization
+        as: gpu_utilization
+        matches: DCGM_FI_DEV_GPU_UTIL
       resources:
         overrides:
           exported_namespace:
