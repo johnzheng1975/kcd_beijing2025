@@ -1,0 +1,60 @@
+#Sample value for this helm template
+#replicaCount: 1
+#autoscaling:
+#  maxReplicaCount: 10
+#  targetCPUUtilizationPercentage: 80
+#  targetMemoryUtilizationPercentage: 70
+#  targetGPUUtilizationPercentage: 75
+#  targetRequestRate: 100
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-predictor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-predictor
+  minReplicas: {{ .Values.replicaCount }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicaCount | default .Values.replicaCount }}
+  metrics:
+  {{- with .Values.autoscaling.targetCPUUtilizationPercentage }}
+  - type: ContainerResource
+    containerResource:
+      name: cpu
+      container: service
+      target:
+        type: Utilization
+        averageUtilization: {{ . }}
+  {{- end }}
+  {{- with .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  - type: ContainerResource
+    containerResource:
+      name: memory
+      container: service
+      target:
+        type: Utilization
+        averageUtilization: {{ . }}
+  {{- end }}
+  {{- with .Values.autoscaling.targetGPUUtilizationPercentage }}
+  - type: Pods
+    pods:
+      metric:
+        name: gpu_utilization
+      target:
+        averageValue: {{ . }}
+        type: Value
+  {{- end }}
+  {{- with .Values.autoscaling.targetRequestRate }}
+  - type: Pods
+    pods:
+      metric:
+        name: requests_per_second
+      target:
+        averageValue: {{ . }}
+        type: Value
+  {{- end }}
+
