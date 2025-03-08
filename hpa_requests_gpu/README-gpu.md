@@ -58,7 +58,7 @@
    - You got `DCGM_FI_DEV_GPU_UTIL` for "HPA Based on GPU Usage"
      ![GPU UTIL](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-gpuUtil.png)
    - You also got other GPU related metrics.
-     ![GPU All](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/gpu-metrics-prometheus-all.png)
+     ![GPU All](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-all.png)
 
 ### Implement HPA based on GPU usage
 - Replace prometheus adapter for this example

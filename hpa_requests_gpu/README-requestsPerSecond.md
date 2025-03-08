@@ -4,7 +4,7 @@
 - The hpa is based on requests per second.
 
 ### Architecture diagram
-![Istio HPA](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/istio-hpa-overview.png)
+![Istio HPA](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/istio-hpa-overview.png)
 
 ### Docs Reference
 - https://github.com/prometheus-community/helm-charts/tree/main/charts
