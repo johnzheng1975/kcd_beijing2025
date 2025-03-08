@@ -59,6 +59,6 @@ spec:
             pod:
               resource: pod
         name:
-          matches: ^(.*)
+          matches: DCGM_FI_DEV_GPU_UTIL
           as: "gpu_utilization"
         metricsQuery: avg(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)
