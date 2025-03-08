@@ -54,9 +54,14 @@
          version: "v1.13.1-centos7"
    ```
 
- 
+- After `NVIDIA gpu-operator` is installed, query in Prometheus.
+   - You got `DCGM_FI_DEV_GPU_UTIL` for "HPA Based on GPU Usage"
+     ![GPU UTIL](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/gpu-metrics-prometheus-gpuUtil.png)
+   - You also got other GPU related metrics.
+     ![GPU All](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/gpu-metrics-prometheus-all.png)
 
-### Replace prometheus adapter for this example
+### Implement HPA based on GPU usage
+- Replace prometheus adapter for this example
 - Prepare current adapter configmap with below, save as cm-prometheus-adapter.yaml.
   ```
   # kubectl  get cm prometheus-adapter -oyaml
