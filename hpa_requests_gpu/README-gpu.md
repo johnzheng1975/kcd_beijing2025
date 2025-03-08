@@ -1,5 +1,8 @@
 ## Custom metrics with prometheus adapter (GPU usage)
 
+### Pre-condition 
+- Please go through [README-requestsPerSecond.md](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/README-requestsPerSecond.md), to understand the basic concept of "HPA based to custom metrics".
+
 ### Requirments
 - Support Horizontal Pod Autoscaling based on GPU Usage.
 
@@ -13,7 +16,8 @@
 
 - [NVIDIA Data Center GPU Manager (DCGM)]((https://developer.nvidia.com/blog/monitoring-gpus-in-kubernetes-with-dcgm/)) can provide GPU metrics.
 
-- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU. So, install gpu-operator can cover all. [Sample Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/gpu-operator_installation.yaml)
+- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU. So, install gpu-operator can cover NVIDIA Device Plugin, DCGN.
+   [Sample Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/gpu-operator_installation.yaml)
    ```
    ---
    apiVersion: source.toolkit.fluxcd.io/v1
