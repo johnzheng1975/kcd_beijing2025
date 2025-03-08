@@ -56,7 +56,7 @@
 
 - After `NVIDIA gpu-operator` is installed, query in Prometheus.
    - You got `DCGM_FI_DEV_GPU_UTIL` for "HPA Based on GPU Usage"
-     ![GPU UTIL](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/gpu-metrics-prometheus-gpuUtil.png)
+     ![GPU UTIL](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-gpuUtil.png)
    - You also got other GPU related metrics.
      ![GPU All](https://raw.githubusercontent.com/stefanprodan/istio-hpa/master/diagrams/gpu-metrics-prometheus-all.png)
 
