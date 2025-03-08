@@ -66,10 +66,14 @@
      ![GPU All](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-all.png)
 
 ### Implement HPA based on GPU usage
-- Replace prometheus adapter for this example
-- Prepare current adapter configmap with below, save as cm-prometheus-adapter.yaml.
+- Use prometheus adapter configmap for this example
+- Install AI service which use gpu
+- Prepare HPA configure for this AI service
+- Test Result: HPA based on GPU usage
+
+#### Use prometheus adapter configmap for this example
+- Prepare current adapter configmap with below, save as cm-prometheus-adapter-gpu.yaml.
   ```
-  # kubectl  get cm prometheus-adapter -oyaml
   apiVersion: v1
   data:
     config.yaml: |
@@ -85,10 +89,22 @@
             pod:
               resource: pod
         seriesQuery: istio_requests_total{pod!="", namespace!=""}
+      - metricsQuery: avg(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)
+        name:
+          as: gpu_utilization
+          matches: DCGM_FI_DEV_GPU_UTIL
+        resources:
+          overrides:
+            exported_namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        seriesQuery: '{__name__=~"^DCGM_FI_DEV_GPU_UTIL$", app="nvidia-dcgm-exporter", container="service",
+          service="nvidia-dcgm-exporter"}'
   kind: ConfigMap
   metadata:
     name: prometheus-adapter
-    namespace: default
+    namespace: infra
   ```
 
 - Replace this configmap, and restart.
@@ -97,101 +113,46 @@
   $ kubectl  get cm prometheus-adapter -oyaml > bk_cm_prometheus_adaptor.yaml
   
   # Replace for this example.
-  $ kubectl replace -f cm-prometheus-adapter.yaml --force  
+  $ kubectl replace -f cm-prometheus-adapter-gpu.yaml --force
 
   # Restart prom-adapter pods
   $ kubectl rollout restart deployment prometheus-adapter -n default
   ```
 
-
-### Installing the demo app
- 
-First create a `test` namespace with Istio sidecar injection enabled:
-
-```bash
-kubectl apply -f ./namespaces/
-```
-
-Create the podinfo deployment and ClusterIP service in the `test` namespace:
-
-```bash
-kubectl apply -f ./podinfo/deployment.yaml,./podinfo/service.yaml
-```
-
-In order to trigger the auto scaling, you'll need a tool to generate traffic.
-Deploy the load test service in the `test` namespace:
-
-```bash
-kubectl apply -f ./loadtester/
-```
-
-Verify the install by calling the podinfo API.
-Exec into the load tester pod and use `hey` to generate load for a couple of seconds:
-
-```bash
-export loadtester=$(kubectl -n test get pod -l "app=loadtester" -o jsonpath='{.items[0].metadata.name}')
-kubectl -n test exec -it ${loadtester} -- sh
-
-~ $ hey -z 10s -c 10 -q 2 http://podinfo.test:9898
-
-Summary:
-  Total:	10.0138 secs
-  Requests/sec:	19.9451
-
-Status code distribution:
-  [200]	200 responses
-
-  $ exit
-```
-
-The podinfo [ClusterIP service](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/podinfo/service.yaml)
-exposes port 9898 under the `http` name. When using the http prefix, the Envoy sidecar will
-switch to L7 routing and the telemetry service will collect HTTP metrics.
-
-### Querying the Istio metrics
-
-The Istio telemetry service collects metrics from the mesh and stores them in Prometheus. One such metric is
-`istio_requests_total`, with it you can determine the rate of requests per second a workload receives.
-
-This is how you can query Prometheus for the req/sec rate received by podinfo in the last two minute:
-
-```sql
-   sum(rate(istio_requests_total{namespace="test",pod=~"podinfo-.*"}[2m])) by (namespace, pod)
-```
+#### Install AI service which use gpu 
+- Prepare AI service which use gpu.
+- Deploy AI service.
 
 
-### Configuring the HPA with Istio metrics
+#### Configuring the HPA with Istio metrics
 
-Using the req/sec query you can define a HPA that will scale the podinfo workload based on the number of requests
-per second that each instance receives:
+You can define a HPA that will scale the aiservice workload based on gpu utilization。
+
+For testing purpose, set average Value is 60%. minReplicas is 1, maxReplicas is 3.
 
 Prepare HPA file, save as hpa.yaml
 ```
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: podinfo
-  namespace: test
+  name: aiservice
+  namespace: zone-itg
 spec:
-  maxReplicas: 20
+  maxReplicas: 3
   metrics:
   - pods:
       metric:
-        name: requests_per_second 
+        name: gpu_utilization
       target:
-        averageValue: 5
+        averageValue: "60"
         type: Value
     type: Pods
   minReplicas: 1
   scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: podinfo
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: aiservice
 ```
- 
-
-The above configuration will instruct the Horizontal Pod Autoscaler to scale up the deployment when the average traffic
-load goes over 5 req/sec per replica.
 
 Create the HPA with:
 
@@ -199,27 +160,8 @@ Create the HPA with:
 kubectl apply -f ./hpa.yaml
 ```
 
+#### Test Result: HPA based on GPU usage
+- HPA based on GPU usage works well, as below:
 
-### Autoscaling based on HTTP traffic
-
-To test the HPA you can use the load tester to trigger a scale up event.
-
-Exec into the tester pod and use `hey` to generate load for a 5 minutes:
-
-```bash
-kubectl -n test exec -it ${loadtester} -- sh
-
-~ $  hey -z 500s -c 10 -q 2 http://podinfo.test:9898
-```
-Press ctrl+c then exit to get out of load test terminal if you wanna stop prematurely.
- 
-
-### After muinutes, the replicas go upper to 4.  (20 / 5 = 4)
-- In k8s command:
-```
-# kubectl  get hpa -n test
-NAME      REFERENCE            TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-podinfo   Deployment/podinfo   4958m/5   1         20        4          6m47s
-```
- 
+  ![GPU Node Auto Scaling Test Result](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/hpa-example-gpu.png)
  

@@ -1,0 +1,21 @@
+# kubectl  get hpa -n zone-itg aiservice -oyaml 
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aiservice
+  namespace: zone-itg
+spec:
+  maxReplicas: 3
+  metrics:
+  - pods:
+      metric:
+        name: gpu_utilization
+      target:
+        averageValue: "60"
+        type: Value
+    type: Pods
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: aiservice
