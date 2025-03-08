@@ -16,7 +16,7 @@
 
 - [NVIDIA Data Center GPU Manager (DCGM)](https://developer.nvidia.com/blog/monitoring-gpus-in-kubernetes-with-dcgm/) can provide GPU metrics.
 
-- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU. 
+- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU.
 
    So, install gpu-operator can cover NVIDIA Device Plugin, DCGM.
 
@@ -59,6 +59,7 @@
 - After `NVIDIA gpu-operator` is installed, query in Prometheus.
    - You got `DCGM_FI_DEV_GPU_UTIL` for "HPA Based on GPU Usage"
      ![GPU UTIL](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-gpuUtil.png)
+
    - You also got other GPU related metrics.
      ![GPU All](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/hpa_requests_gpu/diagrams/gpu-metrics-prometheus-all.png)
 
