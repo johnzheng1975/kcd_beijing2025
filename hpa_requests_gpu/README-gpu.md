@@ -14,9 +14,11 @@
 
 ### Collecting GPU Metrics
 
-- [NVIDIA Data Center GPU Manager (DCGM)]((https://developer.nvidia.com/blog/monitoring-gpus-in-kubernetes-with-dcgm/)) can provide GPU metrics.
+- [NVIDIA Data Center GPU Manager (DCGM)](https://developer.nvidia.com/blog/monitoring-gpus-in-kubernetes-with-dcgm/) can provide GPU metrics.
 
-- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU. So, install gpu-operator can cover NVIDIA Device Plugin, DCGN.
+- [NVIDIA gpu-operator](https://github.com/NVIDIA/gpu-operator) automate the management of all NVIDIA software components needed to provision GPU. 
+
+   So, install gpu-operator can cover NVIDIA Device Plugin, DCGM.
 
    [Sample Installation Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/flux_samples/gpu-operator_installation.yaml)
    ```
