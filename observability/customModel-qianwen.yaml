@@ -1,0 +1,69 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8000"
+    prometheus.io/scrape: "true"
+    serving.kserve.io/autoscalerClass: external
+    serving.kserve.io/deploymentMode: RawDeployment
+  name: qwen
+spec:
+  predictor:
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+    volumes:
+      - name: cache-volume
+        persistentVolumeClaim:
+          claimName: qwen-efs-pvc
+      # vLLM needs to access the host's shared memory for tensor parallel inference.
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: "5Gi"
+    containers:
+      - image: vllm/vllm-openai:v0.7.2
+        name: qwen2-5-instruct
+        command: [
+          "vllm",
+          "serve",
+          "Qwen/Qwen2.5-14B-Instruct-GPTQ-Int4",
+          "--trust-remote-code",
+          "--gpu-memory-utilization=0.93",
+          "--max-model-len=6144",
+          "--enforce-eager",
+        ]
+        env:
+          - name: VLLM_USE_MODELSCOPE
+            value: "True"
+        ports:
+          - containerPort: 8000
+        resources:
+          limits:
+            cpu: "4"
+            memory: "13Gi"
+            nvidia.com/gpu: "1"
+          requests:
+            cpu: "3"
+            memory: "8Gi"
+            nvidia.com/gpu: "1"
+        volumeMounts:
+          - mountPath: /root/.cache/
+            name: cache-volume
+          - name: shm
+            mountPath: /dev/shm
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 300
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 300
+          periodSeconds: 5
+        securityContext:
+          runAsNonRoot: false # https://github.com/vllm-project/vllm/issues/9118
