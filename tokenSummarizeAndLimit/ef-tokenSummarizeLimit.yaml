@@ -1,0 +1,231 @@
+# Purpose: This is a sample, to summarize LLM daily token usage based on 
+#          1. service account  -- Got from http header: JWT token
+#          2. client IP        -- Got from http header: x-forwarded-for
+#
+# Process: For each LLM request, 
+#          1. Check whether its client IP or service account already arrive the limitation, if yes, return error Response.    [In envoy_on_request function]
+#          2. After LLM response, got tokenInput, tokenOutput, tokenTotal for this api, save to database.                     [In envoy_on_response function]
+#
+# Pre-condition: Already decode JWT Token, got serviceAccount, save to header "oc_sa"
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ef-token-summarize-limit
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway-apigee
+  priority: -250
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.lua
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          inlineCode: |
+            -- Simple JSON encoding function (minimal, for this use case)
+            function json_encode(data)
+              local result = "{"
+              local first = true
+              for key, value in pairs(data) do
+                if not first then result = result .. "," end
+                if type(value) == "string" then
+                  result = result .. '"' .. key .. '":"' .. value .. '"'
+                else
+                  result = result .. '"' .. key .. '":' .. value
+                end
+                first = false
+              end
+              return result .. "}"
+            end
+
+            function envoy_on_request(request_handle)
+              request_handle:logDebug("******* Enter V0.0.1 check token arrive limit or not, return 400 if arrive limitation,")
+              local strbl_1 = '{"status":"Usage over limit  -- serviceAccount"}'
+              local strbl_2 = '{"status":"Usage over limit  -- serviceAccount + IP"}'
+              local strwl = '{"status":"Usage within limit"}'
+              local headers = request_handle:headers()
+              for key, value in pairs(headers) do request_handle:logDebug(key .. " " .. value) end
+
+              -- Check oc_sa (it means service account in our platform)
+              local oc_sa = headers:get("oc_sa")
+              if not oc_sa or oc_sa == "" or oc_sa == "nil" then
+                request_handle:logDebug("oc_sa is missing, empty, or 'nil', stopping execution")
+                return
+              end
+              request_handle:logDebug("oc_sa " .. oc_sa)
+
+              -- Check :authority for "-predictor-"
+              local authority = headers:get(":authority")
+              if authority then
+                request_handle:logDebug(":authority " .. authority)
+                if not string.find(authority, "-predictor-") then
+                  request_handle:logDebug("No -predictor- in :authority, stopping execution")
+                  return  -- Exit the function if "-predictor-" is not found
+                end
+              else
+                request_handle:logDebug(":authority not found")
+                return  -- Exit if no :authority header
+              end
+
+              -- Process x-forwarded-for to get the first IP
+              local xff = headers:get("x-forwarded-for")
+              local first_ip = "1.1.1.1"
+              if xff then
+                request_handle:logDebug("x-forwarded-for " .. xff)
+                -- Split by comma and take the first part
+                first_ip = xff:match("^([^,]+)") or xff  -- Fallback to full value if no comma
+                request_handle:logDebug("First IP from x-forwarded-for: " .. first_ip)
+              else
+                request_handle:logDebug("x-forwarded-for not found")
+              end
+
+              -- Get path
+              local path = headers:get(":path") or ""
+
+              request_handle:logDebug("Checking whether token over limit or not:")
+              -- 1. Check whether its client IP or service account already arrive the limitation, if yes, return error Response. 
+              local tstart = os.clock()
+              local header_bl, body_bl = request_handle:httpCall(
+                "outbound|80||svc_llm_tokenusage.onecloud-dev.svc.cluster.local",
+                {
+                  [":method"] = "GET",
+                  [":path"] = "/sample/modeltoken/checkLimit",
+                  [":authority"] = "svc_llm_tokenusage.onecloud-dev",
+                  ["serviceAccount"] = oc_sa,
+                  ["clientIP"] = first_ip,
+                },
+                "Verify limit",
+                5000
+              )
+
+              -- Log body
+              request_handle:logWarn("Response body from httpCall: " .. (body_bl or "no body returned"))
+              -- Log headers
+              request_handle:logWarn("Response headers from httpCall:")
+              if header_bl then
+                for key, value in pairs(header_bl) do
+                  request_handle:logWarn(key .. ": " .. value)
+                end
+              else
+                request_handle:logWarn("No headers returned")
+              end
+
+              local strbody = body_bl or ""
+              if strbody == strbl_1 then
+                request_handle:respond({[":status"] = "400"}, "Usage over limit  -- serviceAccount.")
+                return
+              elseif strbody == strbl_2 then
+                request_handle:respond({[":status"] = "400"}, "Usage over limit  -- serviceAccount + IP.")
+                return
+              elseif strbody == strwl then
+                request_handle:logDebug("not over limit, go on!")
+              else
+                request_handle:logErr("Error when call modeltoken!")
+                return
+              end
+              
+              -- Store data in dynamic metadata for envoy_on_response
+              local metadata = {
+                serviceAccount = oc_sa,
+                clientIP = first_ip,
+                path = path
+              }
+              request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "request.data", metadata)
+            end
+
+            function table_to_string(tbl)
+              if not tbl then return "nil" end
+              local result = "{"
+              local first = true
+              for key, value in pairs(tbl) do
+                if not first then result = result .. ", " end
+                result = result .. key .. "=" .. tostring(value)
+                first = false
+              end
+              return result .. "}"
+            end
+
+            function envoy_on_response(response_handle)
+              response_handle:logDebug("******* Enter debug logs - envoy_on_response")
+              -- Retrieve request data from dynamic metadata
+              local metadata = response_handle:streamInfo():dynamicMetadata():get("envoy.lua")
+              if not metadata or not metadata["request.data"] then
+                response_handle:logWarn("Failed to retrieve request.data from dynamic metadata, aborting POST")
+                return
+              else
+                response_handle:logWarn("----------" .. table_to_string(metadata["request.data"]))
+              end
+
+              -- 2. After LLM response, got tokenInput, tokenOutput, tokenTotal for this api, save to database.     
+              -- Assign the nested table to a variable
+              local request_data = metadata["request.data"]
+              local serviceAccount = request_data.serviceAccount or "unknown"
+              local clientIP = request_data.clientIP or "unknown"
+              local path = request_data.path or "unknown"
+
+              response_handle:logDebug("******* response header")
+              local pheaders = response_handle:headers()
+              for key, value in pairs(pheaders) do response_handle:logDebug(key .. " " .. value) end
+
+              response_handle:logDebug("******* response body")
+              local body = ""
+              for chunk in response_handle:bodyChunks() do
+                body = body .. chunk:getBytes(0, chunk:length())
+              end
+              response_handle:logDebug(body)
+
+              -- Extract LLM token values
+              local prompt_tokens = body:match('"prompt_tokens":(%d+),') or "0"
+              local completion_tokens = body:match('"completion_tokens":(%d+),') or "0"
+              local total_tokens = body:match('"total_tokens":(%d+),') or "0"
+              response_handle:logDebug("******* extracted values")
+              response_handle:logDebug("prompt_tokens: " .. prompt_tokens)
+              response_handle:logDebug("completion_tokens: " .. completion_tokens)
+              response_handle:logDebug("total_tokens: " .. total_tokens)
+
+              -- Prepare POST body
+              local post_body = json_encode({
+                serviceAccount = serviceAccount,
+                clientIP = clientIP,
+                path = path,
+                tokenInput = tonumber(prompt_tokens),
+                tokenOutput = tonumber(completion_tokens),
+                tokenTotal = tonumber(total_tokens)
+              })
+              response_handle:logDebug("POST body to insert: " .. post_body)
+
+              -- Make the POST request
+              local header_post, body_post = response_handle:httpCall(
+                "outbound|80||svc_llm_tokenusage.onecloud-dev.svc.cluster.local", -- Adjust if different service
+                {
+                  [":method"] = "POST",
+                  [":path"] = "/sample/modeltoken/insert",
+                  [":authority"] = "svc_llm_tokenusage.onecloud-dev",
+                  ["Content-Type"] = "application/json"
+                },
+                post_body,
+                5000
+              )
+
+              -- Log the response (just for debug)
+              response_handle:logDebug("Insert response body: " .. (body_post or "no response"))
+              if header_post then
+                for key, value in pairs(header_post) do
+                  response_handle:logDebug("Insert response header: " .. key .. ": " .. value)
+                end
+              else
+                response_handle:logDebug("No insert response headers")
+              end
+            end
