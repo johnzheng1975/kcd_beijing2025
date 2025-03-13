@@ -111,15 +111,15 @@ spec:
               )
 
               -- Log body
-              request_handle:logWarn("Response body from httpCall: " .. (body_bl or "no body returned"))
+              request_handle:logDebug("Response body from httpCall: " .. (body_bl or "no body returned"))
               -- Log headers
-              request_handle:logWarn("Response headers from httpCall:")
+              request_handle:logDebug("Response headers from httpCall:")
               if header_bl then
                 for key, value in pairs(header_bl) do
-                  request_handle:logWarn(key .. ": " .. value)
+                  request_handle:logDebug(key .. ": " .. value)
                 end
               else
-                request_handle:logWarn("No headers returned")
+                request_handle:logDebug("No headers returned")
               end
 
               local strbody = body_bl or ""
@@ -162,10 +162,10 @@ spec:
               -- Retrieve request data from dynamic metadata
               local metadata = response_handle:streamInfo():dynamicMetadata():get("envoy.lua")
               if not metadata or not metadata["request.data"] then
-                response_handle:logWarn("Failed to retrieve request.data from dynamic metadata, aborting POST")
+                response_handle:logDebug("Failed to retrieve request.data from dynamic metadata, aborting POST")
                 return
               else
-                response_handle:logWarn("----------" .. table_to_string(metadata["request.data"]))
+                response_handle:logDebug("----------" .. table_to_string(metadata["request.data"]))
               end
 
               -- 2. After LLM response, got tokenInput, tokenOutput, tokenTotal for this api, save to database.     
