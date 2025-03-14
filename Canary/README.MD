@@ -16,7 +16,7 @@
 
 ### Introduction of helm release of primary and canary
     They are same except name, just create two instances of kserve-model helm chart. [Code]()
-     ```yaml
+     ```
      apiVersion: helm.toolkit.fluxcd.io/v2
      kind: HelmRelease
      metadata:

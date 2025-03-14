@@ -7,8 +7,7 @@ spec:
   gateways:
   - istio-system/apigee-gateway
   hosts:
-  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.{{ .Values.exposeModel.type | default "int" }}.{{ .Values.env }}-{{ .Values.geoCode }}.hponecloud.io
-  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.{{ .Values.exposeModel.type | default "int" }}.{{ .Values.env }}-{{ .Values.regionCode }}.hponecloud.io
+  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.int.dev-us.sample.io
   http:
   - match:
     - uri:
