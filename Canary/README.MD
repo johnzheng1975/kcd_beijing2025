@@ -91,6 +91,12 @@
  - https://sklearn-predictor-myproject.api.sandbox-uw2.sample.io/v1/models/sklearn:predict
 
 ## Previous helm chart change
+The changes for Existing chart is very less, as below:
+1. Make model name is same for primary/ canary model, thus predict path will be same.
+2. Make sure primary model use old `Storage URI`, canary model use new `Storage URI`
+
+![Previous model chart code change](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/diagrams/kserve-model-change-for-canary.png)
+
 
 ## Flux code to render helm chart
    ```
