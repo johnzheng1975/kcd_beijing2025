@@ -90,6 +90,7 @@
      It has a general domain for customers, like:
      - https://sklearn-predictor-myproject.api.sandbox-uw2.sample.io/v1/models/sklearn:predict
 
+## Previous helm chart change
 
 ## Flux code to render helm chart
    ```
