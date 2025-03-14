@@ -4,7 +4,7 @@
 - Implement "model canary" in KServe without Knative
 - Ensure the implementation is simple, robust, and easy to maintain.
 
-## Helm Chart Design
+## Design of Helm Chart
 - **Existing Chart**: The previous Helm chart, named `kserve-model`, includes templates for features such as authentication, HPA (Horizontal Pod Autoscaling), rate limiting, and more.
 - **New Chart**: Introduce a new Helm chart named `kserve-general`, which includes:
   - A Helm release for the primary model deployment.
