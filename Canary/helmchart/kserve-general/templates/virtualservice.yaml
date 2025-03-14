@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}-predictor
+  namespace: {{ .Release.Namespace }}
+spec:
+  gateways:
+  - istio-system/apigee-gateway
+  hosts:
+  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.{{ .Values.exposeModel.type | default "int" }}.{{ .Values.env }}-{{ .Values.geoCode }}.hponecloud.io
+  - {{ .Release.Name }}-predictor-{{ .Release.Namespace }}.{{ .Values.exposeModel.type | default "int" }}.{{ .Values.env }}-{{ .Values.regionCode }}.hponecloud.io
+  http:
+  - match:
+    - uri:
+        regex: ^/.+$
+    name: {{ .Release.Name }}-predictor
+    route:
+    - destination:
+        host: {{ .Release.Name }}-primary-predictor
+        port:
+          number: 80
+      weight: {{ .Values.primaryLoad }}
+    - destination:
+        host: {{ .Release.Name }}-canary-predictor
+        port:
+          number: 80
+      weight: {{ sub 100 .Values.primaryLoad }}

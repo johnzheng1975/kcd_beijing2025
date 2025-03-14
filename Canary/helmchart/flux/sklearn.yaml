@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  namespace: sample-dev
+  name: sklearn
+spec:
+  interval: 1m
+  releaseName: sklearn
+  chart:
+    spec:
+      chart: kserve-general
+      sourceRef:
+        kind: GitRepository
+        name: charts-git
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 1
+  upgrade:
+    remediation:
+      retries: 1
+  values:
+    primaryLoad: 60   ### Important
+    inferenceservice:
+      predictor:
+        model:
+          modelFormat:
+            name: sklearn
+          storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
+          newStorageUri: "gs://kfserving-examples/models/sklearn/1.0/model-2"   ### Important
+    exposeModel:
+      enabled: true
+      type: "api"
+    replicaCount: 2
+    autoscaling:
+      maxReplicaCount: 4
+

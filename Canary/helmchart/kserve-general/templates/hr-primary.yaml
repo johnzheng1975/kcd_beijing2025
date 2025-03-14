@@ -1,0 +1,34 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-primary
+spec:
+  interval: {{ .Values.reconcileInterval | default "1m" }}
+  chart:
+     spec:
+      chart: kserve-model
+      sourceRef:
+        kind: GitRepository
+        name: charts-git
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 1
+  upgrade:
+    remediation:
+      retries: 1
+  values:
+    {{- with .Values.inferenceservice }}
+    inferenceservice:
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.exposeModel }}
+    exposeModel:
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+  valuesFrom:  #Get env, region, etc form ConfigMap file.
+    - kind: ConfigMap
+      name: namespace-envioroment
+      valuesKey: env.yaml
