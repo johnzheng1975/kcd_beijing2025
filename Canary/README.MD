@@ -11,7 +11,7 @@
     - helm release of canary
     - virtual service to split traffic
 
-     ![Helm Chart Template](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/canary/diagrams/helmChart-Canary.png)
+![Helm Chart Template](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/diagrams/helmChart-Canary.png)
   
 
 ### Introduction of helm release of primary and canary
