@@ -11,10 +11,10 @@
   - A Helm release for the canary model deployment.
   - An Istio `VirtualService` to manage traffic splitting between primary and canary releases.
   ![Helm Chart Template](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/diagrams/helmChart-Canary.png)
-  
 
 ### Introduction of helm release of primary and canary
-    They are same except name, just create two instances of kserve-model helm chart. [Code]()
+-  They are same except name, just create two instances of kserve-model helm chart. [Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/helmchart/kserve-general/templates/hr-primary.yaml)
+
      ```
      apiVersion: helm.toolkit.fluxcd.io/v2
      kind: HelmRelease
@@ -56,8 +56,9 @@
 
 
 ###  Introduction of virutal service
-    It is for traffic split between primary and canary. [Code]()
-     ```yaml
+-  It is for traffic split between primary and canary. [Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/helmchart/kserve-general/templates/virtualservice.yaml)
+
+     ```
      apiVersion: networking.istio.io/v1
      kind: VirtualService
      metadata:
