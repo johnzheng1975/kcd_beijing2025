@@ -2,16 +2,15 @@
 
 ## Requriment
 - Implement "model canary" in KServe without Knative
-- It should be simple, strong and easy to maintain
+- Ensure the implementation is simple, robust, and easy to maintain.
 
-## Design of helm chart
-- Previous helm chart name is kserve-model, include all template, like authentication, hpa, ratelimit...
-- Add a new helm chart named kserve-general, include
-    - helm release of primary
-    - helm release of canary
-    - virtual service to split traffic
-
-![Helm Chart Template](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/diagrams/helmChart-Canary.png)
+## Helm Chart Design
+- **Existing Chart**: The previous Helm chart, named `kserve-model`, includes templates for features such as authentication, HPA (Horizontal Pod Autoscaling), rate limiting, and more.
+- **New Chart**: Introduce a new Helm chart named `kserve-general`, which includes:
+  - A Helm release for the primary model deployment.
+  - A Helm release for the canary model deployment.
+  - An Istio `VirtualService` to manage traffic splitting between primary and canary releases.
+  ![Helm Chart Template](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/diagrams/helmChart-Canary.png)
   
 
 ### Introduction of helm release of primary and canary
