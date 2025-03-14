@@ -173,8 +173,7 @@ $ k get vs -n sample-dev | grep sklearn
 sklearn-predictor           ["istio-system/apigee-gateway"]    ["sklearn-predictor-sample-dev.api.sandbox-uw2.hpsample.io"] 
 sklearn-canary-predictor    ["istio-system/apigee-gateway"]    ["sklearn-canary-predictor-sample-dev.api.sandbox-uw2.hpsample.io"]  
 sklearn-primary-predictor   ["istio-system/apigee-gateway"]    ["sklearn-primary-predictor-sample-dev.api.sandbox-uw2.hpsample.io"]        
- 
- 
+
 # Test with primary domain
 $ curl -X POST "https://sklearn-primary-predictor-sample-dev.api.sandbox-uw2.hpsample.io/v1/models/sklearn:predict"  -H "Content-Type: application/json"   -d '{"instances": [[1.0, 2.0, 3.0, 4.0]]}'
 {"predictions":[2]}
@@ -190,7 +189,6 @@ $ for i in {1..100}; do curl -X POST "https://sklearn-predictor-onecloud-dev.api
 # Expect value is 60 customers testing + 1 test =  61. Actual value is 62, they are similar. Test Pass.
 $ k logs -n onecloud-dev sklearn-primary-predictor-6fc8d4f6-2cxfl  | grep "POST /v1/models/sklearn%3Apredict HTTP/1.1" | wc -l
 62
-
 
 # Expect value is 40 customers testing + 1 test =  41. Actual value is 40, they are similar. Test pass.
 $ k logs -n onecloud-dev sklearn-canary-predictor-57c577ffb5-cxljn | grep "POST /v1/models/sklearn%3Apredict HTTP/1.1" | wc -l
