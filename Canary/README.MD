@@ -99,8 +99,101 @@ The changes for Existing chart is very less, as below:
 
 
 ## Flux code to render helm chart
-   ```
-   ```
+- As below, all parameters are share except [Code](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/Canary/flux/sklearn.yaml)
+  - primaryLoad - The percentage of primary model
+  - storageUri, newStorageUri - For old and new model URI
+  
+  ```
+  apiVersion: helm.toolkit.fluxcd.io/v2
+  kind: HelmRelease
+  metadata:
+    namespace: sample-dev
+    name: sklearn
+  spec:
+    interval: 1m
+    releaseName: sklearn
+    chart:
+      spec:
+        chart: kserve-general
+        sourceRef:
+          kind: GitRepository
+          name: charts-git
+          namespace: flux-system
+    install:
+      remediation:
+        retries: 1
+    upgrade:
+      remediation:
+        retries: 1
+    values:
+      primaryLoad: 60   ### Important
+      inferenceservice:
+        predictor:
+          model:
+            modelFormat:
+              name: sklearn
+            storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
+            newStorageUri: "gs://kfserving-examples/models/sklearn/1.0/model-2"   ### Important
+      exposeModel:
+        enabled: true
+        type: "api"
+      replicaCount: 2
+      autoscaling:
+        maxReplicaCount: 4
+
+  ```
 
 ## Test
-- 
+Test as below, test result is as expected.
+
+```
+# Three helm release, sklearn is the parent helm release;
+$ k get hr -n sample-dev | grep sklearn
+sklearn                  15h    True    Helm install succeeded for release sample-dev/sklearn.v1 with chart kserve-general@0.3.0
+sklearn-canary           15h    True    Helm install succeeded for release sample-dev/sklearn-canary.v1 with chart kserve-model@0.3.0
+sklearn-primary          15h    True    Helm install succeeded for release sample-dev/sklearn-primary.v1 with chart kserve-model@0.3.0
+
+# Two inference service is created, one for primary and one for canary.
+$ k get isvc -n sample-dev | grep sklearn
+sklearn-canary    http://sklearn-canary-sample-dev.example.com    True                                                                  15h
+sklearn-primary   http://sklearn-primary-sample-dev.example.com   True                                                                  15h
+ 
+# Two pods, one for primary and one for canary
+$ k get pods -n onecloud-dev | grep sklearn
+sklearn-canary-predictor-57c577ffb5-cxljn   2/2     Running   0          53m
+sklearn-primary-predictor-6fc8d4f6-2cxfl    2/2     Running   0          50m
+
+# Two service, one for primary and one for canary
+$ k get svc -n onecloud-dev | grep sklearn
+sklearn-canary-predictor    ClusterIP   172.20.172.136   <none>        80/TCP            15h
+sklearn-primary-predictor   ClusterIP   172.20.217.108   <none>        80/TCP            15h
+ 
+# Three virtual service, the main one is for customers accessing. The other two is for testing.
+$ k get vs -n sample-dev | grep sklearn
+sklearn-predictor           ["istio-system/apigee-gateway"]    ["sklearn-predictor-sample-dev.api.sandbox-uw2.hpsample.io"] 
+sklearn-canary-predictor    ["istio-system/apigee-gateway"]    ["sklearn-canary-predictor-sample-dev.api.sandbox-uw2.hpsample.io"]  
+sklearn-primary-predictor   ["istio-system/apigee-gateway"]    ["sklearn-primary-predictor-sample-dev.api.sandbox-uw2.hpsample.io"]        
+ 
+ 
+# Test with primary domain
+$ curl -X POST "https://sklearn-primary-predictor-sample-dev.api.sandbox-uw2.hpsample.io/v1/models/sklearn:predict"  -H "Content-Type: application/json"   -d '{"instances": [[1.0, 2.0, 3.0, 4.0]]}'
+{"predictions":[2]}
+
+# Test with canary domain
+$ curl -X POST "https://sklearn-canary-predictor-sample-dev.api.sandbox-uw2.hpsample.io/v1/models/sklearn:predict"  -H "Content-Type: application/json"   -d '{"instances": [[1.0, 2.0, 3.0, 4.0]]}'
+{"predictions":[2]}
+
+# Test 100 times with customers' domain
+$ for i in {1..100}; do curl -X POST "https://sklearn-predictor-onecloud-dev.api.sandbox-uw2.hponecloud.io/v1/models/sklearn:predict"  -H "Content-Type: application/json"   -d '{"instances": [[1.0, 2.0, 3.0, 4.0]]}'; done;
+{"predictions":[2]}{"predictions":[2]}{"predictions":[2]}{"predictions":[2]} ... ...
+
+# Expect value is 60 customers testing + 1 test =  61. Actual value is 62, they are similar. Test Pass.
+$ k logs -n onecloud-dev sklearn-primary-predictor-6fc8d4f6-2cxfl  | grep "POST /v1/models/sklearn%3Apredict HTTP/1.1" | wc -l
+62
+
+
+# Expect value is 40 customers testing + 1 test =  41. Actual value is 40, they are similar. Test pass.
+$ k logs -n onecloud-dev sklearn-canary-predictor-57c577ffb5-cxljn | grep "POST /v1/models/sklearn%3Apredict HTTP/1.1" | wc -l
+40
+
+```
