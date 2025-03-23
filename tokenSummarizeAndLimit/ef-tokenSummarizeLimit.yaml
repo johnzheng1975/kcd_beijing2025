@@ -6,7 +6,7 @@
 #          1. Check whether its client IP or service account already arrive the limitation, if yes, return error Response.    [In envoy_on_request function]
 #          2. After LLM response, got tokenInput, tokenOutput, tokenTotal for this api, save to database.                     [In envoy_on_response function]
 #
-# Pre-condition: Already decode JWT Token, got serviceAccount, save to header "oc_sa"
+# Pre-condition: Already decode JWT Token, got serviceAccount, save to header "oc_sa" in another envoyfilter whose priority is -300.
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
