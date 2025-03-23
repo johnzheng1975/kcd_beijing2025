@@ -20,14 +20,14 @@ spec:
     remediation:
       retries: 1
   values:
-    primaryLoad: 60   ### Important
+    primaryLoad: 60   # What percentage of traffic will be forwarded to the primary model?
     inferenceservice:
       predictor:
         model:
           modelFormat:
             name: sklearn
-          storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
-          newStorageUri: "gs://kfserving-examples/models/sklearn/1.0/model-2"   ### Important
+          storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"        # Primary model
+          newStorageUri: "gs://kfserving-examples/models/sklearn/1.0/model-2"   # Canary model
     exposeModel:
       enabled: true
       type: "api"
