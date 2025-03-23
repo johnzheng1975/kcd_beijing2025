@@ -9,7 +9,8 @@
 - Publish this service by Istio Virtual Service. [Sample](https://github.com/johnzheng1975/kcd_beijing2025/blob/main/helmcharts_samples/SecurerWhenExposeModel/virtualservice.yaml)
 
 ## How to protect model by JWT token?
-- Here's a simple example
+
+Here's a simple example
 
 ### Require token for external access
 - Create on namespace level, all services in this namespace share this one.
